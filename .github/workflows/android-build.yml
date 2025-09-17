@@ -31,6 +31,8 @@ jobs:
           echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > ~/.android/licenses/android-sdk-license-2
           echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > ~/.android/licenses/android-sdk-preview-license
           echo "84831b9409656b91842a0d1ff3699a997c9c1d12" > ~/.android/licenses/android-sdk-license-3
+          echo "d975f751698a77b662f1254ddbeed3901e976f5a" > ~/.android/licenses/android-sdk-license-4
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > ~/.android/licenses/android-sdk-preview-license-2
 
       - name: Cache buildozer dirs
         uses: actions/cache@v4
@@ -44,6 +46,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install buildozer cython
+
+      - name: Pre-install Android build-tools
+        run: |
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
+          yes | $ANDROID_HOME/tools/bin/sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "build-tools;35.0.1" "platforms;android-35"
 
       - name: Build APK
         run: |
