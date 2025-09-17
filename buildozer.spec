@@ -12,6 +12,7 @@ log_level = 2
 android.api = 28
 android.minapi = 21
 android.archs = arm64-v8a
+android.build_tools = 30.0.3
 android.permissions = 
 presplash.filename = 
 icon.filename = 
