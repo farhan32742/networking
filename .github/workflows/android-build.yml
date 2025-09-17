@@ -53,50 +53,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install buildozer cython
 
-      - name: Install Android SDK and build-tools
-        run: |
-          # Download Android SDK command line tools
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          unzip -q commandlinetools-linux-11076708_latest.zip
-          mkdir -p android-sdk/cmdline-tools
-          mv cmdline-tools android-sdk/cmdline-tools/latest
-          
-          # Set environment variables
-          export ANDROID_HOME=$PWD/android-sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-          
-          # Accept licenses and install required packages
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "build-tools;35.0.1" "platforms;android-35"
-          
-          # Create the old SDK structure that buildozer expects
-          mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
-          cp $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager ~/.buildozer/android/platform/android-sdk/tools/bin/
-          cp $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager ~/.buildozer/android/platform/android-sdk/tools/bin/
-          cp -r $ANDROID_HOME/platform-tools ~/.buildozer/android/platform/android-sdk/
-          cp -r $ANDROID_HOME/build-tools ~/.buildozer/android/platform/android-sdk/
-          cp -r $ANDROID_HOME/platforms ~/.buildozer/android/platform/android-sdk/
-          
-          # Set environment for buildozer
-          echo "ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:$HOME/.buildozer/android/platform/android-sdk/tools/bin:$HOME/.buildozer/android/platform/android-sdk/platform-tools" >> $GITHUB_ENV
-
       - name: Build APK
         run: |
-          # Use the SDK structure that buildozer expects
-          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-          export PATH=$PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
-          
-          # Verify aidl is available
-          echo "Checking for aidl..."
-          find $ANDROID_HOME -name "aidl" -type f
-          
-          # Verify sdkmanager exists
-          echo "Checking for sdkmanager..."
-          ls -la $ANDROID_HOME/tools/bin/
-          
-          # Build with verbose output
-          buildozer android debug --verbose
+          # Let buildozer handle everything - it's more reliable
+          buildozer android debug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
