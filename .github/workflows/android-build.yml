@@ -69,23 +69,31 @@ jobs:
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "build-tools;35.0.1" "platforms;android-35"
           
-          # Create symlink for buildozer to find our SDK
-          mkdir -p ~/.buildozer/android/platform
-          ln -sf $PWD/android-sdk ~/.buildozer/android/platform/android-sdk
+          # Create the old SDK structure that buildozer expects
+          mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
+          cp $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager ~/.buildozer/android/platform/android-sdk/tools/bin/
+          cp $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager ~/.buildozer/android/platform/android-sdk/tools/bin/
+          cp -r $ANDROID_HOME/platform-tools ~/.buildozer/android/platform/android-sdk/
+          cp -r $ANDROID_HOME/build-tools ~/.buildozer/android/platform/android-sdk/
+          cp -r $ANDROID_HOME/platforms ~/.buildozer/android/platform/android-sdk/
           
           # Set environment for buildozer
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
+          echo "PATH=$PATH:$HOME/.buildozer/android/platform/android-sdk/tools/bin:$HOME/.buildozer/android/platform/android-sdk/platform-tools" >> $GITHUB_ENV
 
       - name: Build APK
         run: |
-          # Force buildozer to use our pre-installed SDK
-          export ANDROID_HOME=$PWD/android-sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+          # Use the SDK structure that buildozer expects
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
           
           # Verify aidl is available
           echo "Checking for aidl..."
           find $ANDROID_HOME -name "aidl" -type f
+          
+          # Verify sdkmanager exists
+          echo "Checking for sdkmanager..."
+          ls -la $ANDROID_HOME/tools/bin/
           
           # Build with verbose output
           buildozer android debug --verbose
