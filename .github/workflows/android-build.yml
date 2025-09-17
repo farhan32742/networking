@@ -53,9 +53,31 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install buildozer cython
 
+      - name: Pre-install Android build-tools
+        run: |
+          # Install build-tools manually to ensure aidl is available
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
+          
+          # Wait for buildozer to set up the basic SDK structure first
+          buildozer android debug --verbose || true
+          
+          # Now install build-tools if SDK exists
+          if [ -f "$ANDROID_HOME/tools/bin/sdkmanager" ]; then
+            echo "Installing build-tools to ensure aidl is available..."
+            yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+            $ANDROID_HOME/tools/bin/sdkmanager "build-tools;30.0.3" "platform-tools"
+            
+            # Verify aidl is available
+            echo "Checking for aidl..."
+            find $ANDROID_HOME -name "aidl" -type f
+          else
+            echo "SDK not ready yet, will try again in build step"
+          fi
+
       - name: Build APK
         run: |
-          # Let buildozer handle everything - it's more reliable
+          # Build the APK
           buildozer android debug
 
       - name: Upload APK artifact
