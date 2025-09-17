@@ -47,11 +47,21 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install buildozer cython
 
-      - name: Pre-install Android build-tools
+      - name: Initialize buildozer and install Android build-tools
         run: |
+          # Initialize buildozer to download Android SDK first
+          buildozer android debug --verbose || true
+          
+          # Wait for SDK to be available and install build-tools
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           export PATH=$PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
-          yes | $ANDROID_HOME/tools/bin/sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "build-tools;35.0.1" "platforms;android-35"
+          
+          # Check if SDK exists and install required tools
+          if [ -f "$ANDROID_HOME/tools/bin/sdkmanager" ]; then
+            yes | $ANDROID_HOME/tools/bin/sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "build-tools;35.0.1" "platforms;android-35"
+          else
+            echo "Android SDK not found, will be installed by buildozer"
+          fi
 
       - name: Build APK
         run: |
